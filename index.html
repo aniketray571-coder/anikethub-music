@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aniket Hub Music - Trending Hits</title>
+    <style>
+        body {
+            background-color: #0f0f0f;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 15px;
+            text-align: center;
+        }
+        h2 {
+            color: #1db954;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+        .player-box {
+            background: #181818;
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            margin-bottom: 20px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #current-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1db954;
+        }
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 12px;
+        }
+        .btn {
+            background: #1db954;
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .playlist {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .song-card {
+            background: #1a1a1a;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: 0.2s;
+        }
+        .song-card:hover, .song-card.active {
+            background: #282828;
+            border-left: 4px solid #1db954;
+        }
+        .song-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .play-icon {
+            color: #1db954;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🔥 Aniket Hub Trending Music</h2>
+
+    <!-- Main YouTube Player Box -->
+    <div class="player-box">
+        <div id="current-title">1. No Snitching (Trending Track)</div>
+        <div class="video-container">
+            <div id="yt-player"></div>
+        </div>
+        <div class="controls">
+            <button class="btn" onclick="prevSong()">⏮ Prev</button>
+            <button class="btn" onclick="nextSong()">Next ⏭</button>
+        </div>
+    </div>
+
+    <!-- Playlist Box -->
+    <div class="playlist" id="playlist-box"></div>
+
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        // =====================================================
+        // NAYE YOUTUBE GAANE YAHAN JODEIN
+        // =====================================================
+        const songs = [
+            { name: "1. No Snitching (Trending Track)", query: "No Snitching Official Audio Song" },
+            { name: "2. Saiyaara (Title Song) - Faheem Abdullah", videoId: "BSJa1UytM8w" },
+            { name: "3. Gehra Hua (Dhurandhar) - Arijit Singh", videoId: "GX9x62kFsVU" },
+            { name: "4. Aaj Ki Raat (Stree 2)", videoId: "roz9sXFkTuE" },
+            { name: "5. Bhool Bhulaiyaa 3 - Title Track", videoId: "Cus-6cnyt1s" },
+            { name: "6. Tauba Tauba - Karan Aujla", videoId: "LK7-_dgAVQE" },
+            { name: "7. Jaana Samjho Na (Bhool Bhulaiyaa 3)", videoId: "0PyHEaoZE1c" },
+            { name: "8. Sajni (Laapataa Ladies) - Arijit Singh", videoId: "k3g_WjLCsXM" }
+        ];
+
+        let currentIndex = 0;
+        let player;
+        const titleText = document.getElementById('current-title');
+        const playlistBox = document.getElementById('playlist-box');
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('yt-player', {
+                height: '100%',
+                width: '100%',
+                playerVars: {
+                    'autoplay': 1,
+                    'playsinline': 1,
+                    'rel': 0,
+                    'listType': 'search',
+                    'list': songs[0].query
+                },
+                events: {
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+            renderPlaylist();
+        }
+
+        // Jab ek gaana khatam ho, toh khud agla chalega (Auto-Next)
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                nextSong();
+            }
+        }
+
+        function playSong(index) {
+            currentIndex = index;
+            titleText.innerText = songs[currentIndex].name;
+            if (songs[currentIndex].videoId) {
+                player.loadVideoById(songs[currentIndex].videoId);
+            } else if (songs[currentIndex].query) {
+                player.loadPlaylist({
+                    listType: 'search',
+                    list: songs[currentIndex].query,
+                    index: 0
+                });
+            }
+            renderPlaylist();
+        }
+
+        function nextSong() {
+            currentIndex = (currentIndex + 1) % songs.length;
+            playSong(currentIndex);
+        }
+
+        function prevSong() {
+            currentIndex = (currentIndex - 1 + songs.length) % songs.length;
+            playSong(currentIndex);
+        }
+
+        function renderPlaylist() {
+            playlistBox.innerHTML = "";
+            songs.forEach((song, index) => {
+                const card = document.createElement('div');
+                card.className = 'song-card' + (index === currentIndex ? ' active' : '');
+                card.innerHTML = `<span class="song-name">${song.name}</span> <span class="play-icon">▶</span>`;
+                card.onclick = () => playSong(index);
+                playlistBox.appendChild(card);
+            });
+        }
+    </script>
+
+</body>
+</html>
